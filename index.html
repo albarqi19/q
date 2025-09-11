@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج تسجيل المسابقة القرآنية - فرع غرب الدمام</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background Audio -->
+        <!-- Background Audio -->
+    <audio id="backgroundAudio" loop preload="auto">
+        <source src="HitPaw Add Music Audio.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Audio Control Button -->
+    <button class="audio-control-btn" id="audioControlBtn" title="إيقاف الصوت">
+        <span class="audio-icon">🔊</span>
+    </button>
+
+    <!-- Countdown Banner -->
+    <div class="countdown-banner" id="countdownBanner">
+        <div class="countdown-content">
+            <div class="countdown-title" id="countdownTitle">باقي على بداية التسجيل</div>
+            <div class="countdown-timer" id="countdownTimer">
+                <div class="time-unit">
+                    <span class="time-number" id="days">00</span>
+                    <span class="time-label">يوم</span>
+                </div>
+                <div class="time-unit">
+                    <span class="time-number" id="hours">00</span>
+                    <span class="time-label">ساعة</span>
+                </div>
+                <div class="time-unit">
+                    <span class="time-number" id="minutes">00</span>
+                    <span class="time-label">دقيقة</span>
+                </div>
+                <div class="time-unit">
+                    <span class="time-number" id="seconds">00</span>
+                    <span class="time-label">ثانية</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Welcome Page -->
+        <div class="welcome-page" id="welcomePage">
+            <div class="welcome-container">
+                <div class="logo-section">
+                    <img src="Logo.png" alt="شعار المسابقة" class="main-logo" id="mainLogo">
+                </div>
+                
+                <div class="welcome-content">
+                    <h1 class="main-title">المسابقة القرآنية</h1>
+                    <h2 class="sub-title">فرع غرب الدمام</h2>
+                    
+                    <div class="welcome-features">
+                        <div class="feature">
+                            <div class="feature-icon">�</div>
+                            <div class="feature-text">معايير المسابقة</div>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon">🏆</div>
+                            <div class="feature-text">جوائز قيمة للفائزين<br><span class="prize-amount">25 ألف ريال سعودي</span></div>
+                        </div>
+                    </div>
+                    
+                    <button class="start-btn" id="startBtn" onclick="startRegistration()">
+                        ابدأ التسجيل الآن
+                    </button>
+                    
+                    <div class="registration-status" id="registrationStatus"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Form (Hidden Initially) -->
+        <div class="registration-form" id="registrationForm" style="display: none;">
+            <!-- Header -->
+            <header class="header">
+                <button class="back-to-welcome-btn" onclick="backToWelcome()" title="العودة للصفحة الرئيسية">
+                    ← الرئيسية
+                </button>
+                <h1>نموذج تسجيل المسابقة القرآنية</h1>
+                <p>فرع غرب الدمام</p>
+            </header>
+
+        <!-- Progress Indicator -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-steps">
+                <span class="step active" id="step1">1</span>
+                <span class="step" id="step2">2</span>
+                <span class="step" id="step3">3</span>
+                <span class="step" id="step4">4</span>
+                <span class="step" id="step5">5</span>
+            </div>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container">
+            <!-- Step 1: Personal Information -->
+            <div class="form-step active" id="formStep1">
+                <div class="card">
+                    <div class="card__body">
+                        <h2>البيانات الشخصية</h2>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="fullName">الاسم الرباعي *</label>
+                            <input type="text" id="fullName" class="form-control" placeholder="أدخل اسمك الرباعي">
+                            <div class="error-message" id="fullNameError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="idNumber">رقم الهوية *</label>
+                            <input type="number" id="idNumber" class="form-control" placeholder="أدخل رقم الهوية">
+                            <div class="error-message" id="idNumberError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="age">العمر *</label>
+                            <input type="number" id="age" class="form-control" min="5" max="80" placeholder="أدخل عمرك">
+                            <div class="error-message" id="ageError"></div>
+                        </div>
+
+                        <button type="button" class="btn btn--primary next-btn" onclick="nextStep(1)">التالي</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Contact Information -->
+            <div class="form-step" id="formStep2">
+                <div class="card">
+                    <div class="card__body">
+                        <h2>الحلقة الحالية والتواصل</h2>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="mosqueName">اسم المسجد *</label>
+                            <input type="text" id="mosqueName" class="form-control" placeholder="أدخل اسم المسجد">
+                            <div class="error-message" id="mosqueNameError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="mobileNumber">رقم الجوال *</label>
+                            <input type="tel" id="mobileNumber" class="form-control" placeholder="05xxxxxxxx">
+                            <div class="error-message" id="mobileNumberError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="altMobileNumber">رقم الجوال الآخر (اختياري)</label>
+                            <input type="tel" id="altMobileNumber" class="form-control" placeholder="05xxxxxxxx">
+                            <div class="error-message" id="altMobileNumberError"></div>
+                        </div>
+
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn--secondary prev-btn" onclick="prevStep(2)">السابق</button>
+                            <button type="button" class="btn btn--primary next-btn" onclick="nextStep(2)">التالي</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Level Selection -->
+            <div class="form-step" id="formStep3">
+                <div class="card">
+                    <div class="card__body">
+                        <h2>اختيار المستوى</h2>
+                        
+                        <div class="form-group">
+                            <label class="form-label">نوع المسابقة *</label>
+                            <div class="competition-cards">
+                                <div class="competition-card" data-type="general">
+                                    <input type="radio" name="competitionType" value="general" id="general" onchange="toggleLevelOptions()">
+                                    <label for="general" class="competition-card-label">
+                                        <h3>المسابقة العامة</h3>
+                                        <p>23 سنة فأقل</p>
+                                    </label>
+                                </div>
+                                <div class="competition-card" data-type="minor">
+                                    <input type="radio" name="competitionType" value="minor" id="minor" onchange="toggleLevelOptions()">
+                                    <label for="minor" class="competition-card-label">
+                                        <h3>المسابقة الصغرى</h3>
+                                        <p>10 سنوات فأقل</p>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="error-message" id="competitionTypeError"></div>
+                        </div>
+
+                        <div class="form-group level-options hidden" id="levelOptions">
+                            <label class="form-label">اختر المستوى *</label>
+                            <div class="level-cards" id="levelCards">
+                                <!-- Level cards will be generated dynamically -->
+                            </div>
+                            <div class="error-message" id="competitionLevelError"></div>
+                        </div>
+
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn--secondary prev-btn" onclick="prevStep(3)">السابق</button>
+                            <button type="button" class="btn btn--primary next-btn" onclick="nextStep(3)">التالي</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Terms and Conditions -->
+            <div class="form-step" id="formStep4">
+                <div class="card">
+                    <div class="card__body">
+                        <h2>الشروط والأحكام</h2>
+                        
+                        <div class="terms-container">
+                            <div class="terms-content" id="termsContent">
+                                بسم الله الرحمن الرحيم<br><br>
+                                الشروط والأحكام للمشاركة في المسابقة القرآنية - فرع غرب الدمام<br><br>
+                                1. يجب على المتسابق أن يكون ملتزماً بتلاوة الجزء أو الأجزاء المحددة للمسابقة بشكل صحيح.<br><br>
+                                2. يجب على المتسابق الحضور في الوقت المحدد للمسابقة.<br><br>
+                                3. يلتزم المتسابق بآداب التلاوة والسلوك الحسن أثناء المسابقة.<br><br>
+                                4. في حالة عدم الحضور دون عذر مقبول، يحق للجهة المنظمة استبعاد المتسابق.<br><br>
+                                5. قرار لجنة التحكيم نهائي ولا يقبل الاعتراض عليه.<br><br>
+                                6. يحق للجهة المنظمة تعديل مواعيد المسابقة حسب الحاجة مع إشعار المتسابقين.<br><br>
+                                7. المشاركة في المسابقة تعني الموافقة على جميع الشروط والأحكام.<br><br>
+                                8. للاستفسار يمكن التواصل على الأرقام المعلنة.<br><br>
+                                نسأل الله التوفيق للجميع
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="agreeTerms">
+                                <span class="checkbox-custom"></span>
+                                أوافق على الشروط والأحكام
+                            </label>
+                            <div class="error-message" id="agreeTermsError"></div>
+                        </div>
+
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn--secondary prev-btn" onclick="prevStep(4)">السابق</button>
+                            <button type="button" class="btn btn--primary next-btn" onclick="nextStep(4)">موافق</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Success Page -->
+            <div class="form-step" id="formStep5">
+                <div class="card success-card">
+                    <div class="card__body">
+                        <div class="success-icon"></div>
+                        <h2>تم التسجيل بنجاح</h2>
+                        <p class="success-message">تم التسجيل بنجاح وسيتم التواصل معك قريباً. يمكنك الاستعلام عن تسجيلك برقم الهوية</p>
+                        
+                        <div class="registration-summary">
+                            <h3>ملخص التسجيل:</h3>
+                            <div class="summary-item">
+                                <span class="summary-label">الاسم:</span>
+                                <span class="summary-value" id="summaryName"></span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">رقم الهوية:</span>
+                                <span class="summary-value" id="summaryId"></span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">العمر:</span>
+                                <span class="summary-value" id="summaryAge"></span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">المسجد:</span>
+                                <span class="summary-value" id="summaryMosque"></span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">رقم الجوال:</span>
+                                <span class="summary-value" id="summaryMobile"></span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">نوع المسابقة:</span>
+                                <span class="summary-value" id="summaryCompetition"></span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">المستوى:</span>
+                                <span class="summary-value" id="summaryLevel"></span>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn--primary" onclick="resetForm()">تسجيل جديد</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        <!-- End Registration Form -->
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
