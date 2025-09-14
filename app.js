@@ -65,16 +65,20 @@ function updateCountdown() {
         countdownTitle.textContent = titleText;
     }
     
-    // Update button state
+    // Update button state (مؤقتاً: الزر مفعل دائماً)
     if (startBtn) {
-        startBtn.disabled = !buttonEnabled;
-        if (buttonEnabled) {
-            startBtn.textContent = 'ابدأ التسجيل الآن';
-        } else if (now < REGISTRATION_START) {
-            startBtn.textContent = 'التسجيل لم يبدأ بعد';
-        } else {
-            startBtn.textContent = 'انتهى التسجيل';
-        }
+        startBtn.disabled = false; // مؤقتاً: تفعيل الزر دائماً
+        startBtn.textContent = 'ابدأ التسجيل الآن'; // مؤقتاً: نص ثابت
+        
+        // الكود الأصلي معطل مؤقتاً:
+        // startBtn.disabled = !buttonEnabled;
+        // if (buttonEnabled) {
+        //     startBtn.textContent = 'ابدأ التسجيل الآن';
+        // } else if (now < REGISTRATION_START) {
+        //     startBtn.textContent = 'التسجيل لم يبدأ بعد';
+        // } else {
+        //     startBtn.textContent = 'انتهى التسجيل';
+        // }
     }
     
     // Update status
@@ -237,14 +241,15 @@ function handleLogoClick() {
 function startRegistration() {
     console.log('Starting registration');
     
+    // مؤقتاً: تعطيل التحقق من التاريخ والسماح بالتسجيل
     // Check if registration is active or development mode is enabled
-    const startBtn = document.getElementById('startBtn');
-    const isDevelopmentMode = startBtn && startBtn.textContent.includes('وضع التطوير');
-    const now = new Date();
+    // const startBtn = document.getElementById('startBtn');
+    // const isDevelopmentMode = startBtn && startBtn.textContent.includes('وضع التطوير');
+    // const now = new Date();
     
-    if (!isDevelopmentMode && (now < REGISTRATION_START || now > REGISTRATION_END)) {
-        return; // Button should be disabled anyway
-    }
+    // if (!isDevelopmentMode && (now < REGISTRATION_START || now > REGISTRATION_END)) {
+    //     return; // Button should be disabled anyway
+    // }
     
     const welcomePage = document.getElementById('welcomePage');
     const registrationForm = document.getElementById('registrationForm');
