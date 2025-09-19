@@ -7,7 +7,7 @@ let formData = {};
 let isWelcomePage = true;
 
 // API Configuration
-const API_URL = 'https://script.google.com/macros/s/AKfycbx69ghpVbcGHsLvk_0sY8AlE_0ner4n67Y1ag7iMhdx8DiWoXoVdtKOc1lM3BbOPjK1Vg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzGckBDZ8J4smorv7aNA_EuRtUEKNw_cWQvIzI_Q5Qts3SmWmgVCPJSbEm0COmsLNESXw/exec';
 const OFFLINE_MODE = false; // تغيير إلى true للعمل بدون API
 
 // Registration dates
@@ -686,15 +686,17 @@ async function validatePersonalInfoWithAPI() {
             hideLoadingMessage('idNumberError');
             
             if (!checkResult.success) {
-                // في حالة فشل API، نعرض تحذير لكن نسمح بالمتابعة
-                showWarning('idNumberError', 'تعذر التحقق من قاعدة البيانات، يمكنك المتابعة');
+                // في حالة فشل API، نمنع المتابعة ونطلب المحاولة مرة أخرى
+                showError('idNumberError', 'فشل الاتصال بقاعدة البيانات. <button onclick="retryValidation()" class="retry-btn">إعادة المحاولة</button>');
+                isValid = false;
             } else if (checkResult.data && checkResult.data.found) {
                 showError('idNumberError', 'رقم الهوية مسجل مسبقاً في المسابقة');
                 isValid = false;
             }
         } catch (error) {
             hideLoadingMessage('idNumberError');
-            showWarning('idNumberError', 'تعذر التحقق من قاعدة البيانات، يمكنك المتابعة');
+            showError('idNumberError', 'خطأ في الاتصال بالخادم. <button onclick="retryValidation()" class="retry-btn">إعادة المحاولة</button>');
+            isValid = false;
         }
     }
 
@@ -799,12 +801,13 @@ function showError(elementId, message) {
     if (errorElement) {
         const inputElement = errorElement.previousElementSibling;
         
-        errorElement.textContent = message;
+        errorElement.innerHTML = message;
         errorElement.classList.add('show');
         errorElement.style.color = 'var(--color-error)';
         
         if (inputElement && inputElement.classList.contains('form-control')) {
             inputElement.classList.add('error');
+            inputElement.classList.remove('success');
         }
     }
 }
@@ -814,12 +817,28 @@ function showWarning(elementId, message) {
     if (errorElement) {
         const inputElement = errorElement.previousElementSibling;
         
-        errorElement.textContent = message;
+        errorElement.innerHTML = message;
         errorElement.classList.add('show');
         errorElement.style.color = 'var(--color-warning)';
         
         if (inputElement && inputElement.classList.contains('form-control')) {
             inputElement.classList.remove('error');
+        }
+    }
+}
+
+function showSuccess(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        const inputElement = errorElement.previousElementSibling;
+        
+        errorElement.innerHTML = message;
+        errorElement.classList.add('show');
+        errorElement.style.color = 'var(--color-success)';
+        
+        if (inputElement && inputElement.classList.contains('form-control')) {
+            inputElement.classList.remove('error');
+            inputElement.classList.add('success');
         }
     }
 }
@@ -1191,12 +1210,13 @@ window.performInquiry = performInquiry;
 window.showAnnouncement = showAnnouncement;
 window.closeAnnouncement = closeAnnouncement;
 window.showImageError = showImageError;
+window.retryValidation = retryValidation;
 
 // ==============================================
 // API Functions
 // ==============================================
 
-// عامة لإرسال طلبات API باستخدام JSONP لتجنب مشكلة CORS
+// عامة لإرسال طلبات API باستخدام POST أو JSONP
 async function callAPI(action, data = {}) {
     try {
         const requestData = {
@@ -1204,48 +1224,77 @@ async function callAPI(action, data = {}) {
             ...data
         };
 
-        // استخدام JSONP بدلاً من fetch
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-            
-            // إنشاء الـ callback
-            window[callbackName] = function(data) {
-                resolve(data);
-                document.head.removeChild(script);
-                delete window[callbackName];
-            };
+        console.log('إرسال طلب API:', action, requestData);
 
-            // إنشاء URL مع المعاملات
-            const params = new URLSearchParams({
-                callback: callbackName,
-                ...requestData
+        // المحاولة الأولى: استخدام POST
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
             });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('استجابة API (POST):', result);
+                return result;
+            } else {
+                throw new Error('POST failed: ' + response.status);
+            }
+        } catch (postError) {
+            console.log('فشل POST، محاولة JSONP...', postError.message);
             
-            script.src = API_URL + '?' + params.toString();
-            script.onerror = () => {
-                reject(new Error('خطأ في تحميل البيانات'));
-                document.head.removeChild(script);
-                delete window[callbackName];
-            };
-            
-            document.head.appendChild(script);
-            
-            // timeout بعد 10 ثواني
-            setTimeout(() => {
-                if (window[callbackName]) {
-                    reject(new Error('انتهت مهلة الاتصال'));
+            // المحاولة الثانية: استخدام JSONP
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+                
+                // إنشاء الـ callback
+                window[callbackName] = function(data) {
+                    console.log('استجابة API (JSONP):', data);
+                    resolve(data);
                     document.head.removeChild(script);
                     delete window[callbackName];
-                }
-            }, 10000);
-        });
+                };
+
+                // إنشاء URL مع المعاملات
+                const params = new URLSearchParams({
+                    callback: callbackName,
+                    ...requestData
+                });
+                
+                const requestUrl = API_URL + '?' + params.toString();
+                console.log('رابط الطلب (JSONP):', requestUrl);
+                
+                script.src = requestUrl;
+                script.onerror = (error) => {
+                    console.error('خطأ في تحميل السكربت:', error);
+                    reject(new Error('خطأ في الاتصال بالخادم - تحقق من رابط API'));
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+                
+                document.head.appendChild(script);
+                
+                // timeout بعد 15 ثانية
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        console.error('انتهت مهلة الاتصال');
+                        reject(new Error('انتهت مهلة الاتصال - تحقق من اتصال الإنترنت'));
+                        document.head.removeChild(script);
+                        delete window[callbackName];
+                    }
+                }, 15000);
+            });
+        }
 
     } catch (error) {
         console.error('خطأ في الاتصال بـ API:', error);
         return {
             success: false,
-            error: 'خطأ في الاتصال بالخادم'
+            error: 'خطأ في الاتصال بالخادم: ' + error.message
         };
     }
 }
@@ -1253,6 +1302,32 @@ async function callAPI(action, data = {}) {
 // التحقق من وجود تسجيل مسبق
 async function checkExistingRegistration(idNumber) {
     return await callAPI('check', { idNumber: idNumber });
+}
+
+// إعادة محاولة التحقق
+async function retryValidation() {
+    const idNumber = document.getElementById('idNumber').value.trim();
+    if (idNumber) {
+        clearErrors();
+        
+        showLoadingMessage('idNumberError', 'جاري التحقق من رقم الهوية...');
+        
+        try {
+            const checkResult = await checkExistingRegistration(idNumber);
+            hideLoadingMessage('idNumberError');
+            
+            if (!checkResult.success) {
+                showError('idNumberError', 'فشل الاتصال بقاعدة البيانات. <button onclick="retryValidation()" class="retry-btn">إعادة المحاولة</button>');
+            } else if (checkResult.data && checkResult.data.found) {
+                showError('idNumberError', 'رقم الهوية مسجل مسبقاً في المسابقة');
+            } else {
+                showSuccess('idNumberError', 'تم التحقق من رقم الهوية بنجاح ✓');
+            }
+        } catch (error) {
+            hideLoadingMessage('idNumberError');
+            showError('idNumberError', 'خطأ في الاتصال بالخادم. <button onclick="retryValidation()" class="retry-btn">إعادة المحاولة</button>');
+        }
+    }
 }
 
 // تسجيل مشارك جديد

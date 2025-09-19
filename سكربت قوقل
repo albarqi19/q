@@ -1,0 +1,559 @@
+// ==============================================
+// سكربت المسابقة القرآنية - فرع غرب الدمام
+// ==============================================
+
+// إعدادات أساسية
+const SPREADSHEET_NAME = 'تسجيل المسابقة القرآنية - غرب الدمام';
+const MAIN_SHEET_NAME = 'التسجيلات';
+const STATS_SHEET_NAME = 'الإحصائيات';
+const LOGS_SHEET_NAME = 'سجل العمليات';
+
+// دالة التهيئة الأولى - تشغل مرة واحدة فقط
+function setupInitialSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // إنشاء الصفحات
+  createMainSheet(ss);
+  createStatsSheet(ss);
+  createLogsSheet(ss);
+  
+  Logger.log('تم إنشاء جميع الصفحات بنجاح');
+}
+
+// إنشاء صفحة التسجيلات الرئيسية
+function createMainSheet(ss) {
+  let sheet;
+  
+  try {
+    sheet = ss.getSheetByName(MAIN_SHEET_NAME);
+    if (sheet) {
+      sheet.clear(); // مسح البيانات الموجودة
+    } else {
+      sheet = ss.insertSheet(MAIN_SHEET_NAME);
+    }
+  } catch (e) {
+    sheet = ss.insertSheet(MAIN_SHEET_NAME);
+  }
+  
+  // رؤوس الأعمدة
+  const headers = [
+    'رقم التسجيل',
+    'الاسم الرباعي', 
+    'رقم الهوية/الإقامة',
+    'تاريخ الميلاد',
+    'العمر',
+    'اسم المسجد',
+    'الحي',
+    'رقم الجوال',
+    'رقم الجوال الآخر',
+    'نوع المسابقة',
+    'الفرع المختار',
+    'تاريخ التسجيل',
+    'وقت التسجيل',
+    'الحالة'
+  ];
+  
+  // إضافة الرؤوس
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  
+  // تنسيق الرؤوس
+  const headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setBackground('#2F346B');
+  headerRange.setFontColor('#FFFFFF');
+  headerRange.setFontWeight('bold');
+  headerRange.setHorizontalAlignment('center');
+  
+  // ضبط عرض الأعمدة
+  sheet.setColumnWidth(1, 80);  // رقم التسجيل
+  sheet.setColumnWidth(2, 200); // الاسم
+  sheet.setColumnWidth(3, 120); // رقم الهوية
+  sheet.setColumnWidth(4, 100); // تاريخ الميلاد
+  sheet.setColumnWidth(5, 60);  // العمر
+  sheet.setColumnWidth(6, 150); // المسجد
+  sheet.setColumnWidth(7, 100); // الحي
+  sheet.setColumnWidth(8, 120); // الجوال
+  sheet.setColumnWidth(9, 120); // الجوال الآخر
+  sheet.setColumnWidth(10, 120); // نوع المسابقة
+  sheet.setColumnWidth(11, 150); // الفرع
+  sheet.setColumnWidth(12, 100); // تاريخ التسجيل
+  sheet.setColumnWidth(13, 100); // وقت التسجيل
+  sheet.setColumnWidth(14, 80);  // الحالة
+  
+  // تجميد الصف الأول
+  sheet.setFrozenRows(1);
+  
+  return sheet;
+}
+
+// إنشاء صفحة الإحصائيات
+function createStatsSheet(ss) {
+  let sheet;
+  
+  try {
+    sheet = ss.getSheetByName(STATS_SHEET_NAME);
+    if (sheet) {
+      sheet.clear();
+    } else {
+      sheet = ss.insertSheet(STATS_SHEET_NAME);
+    }
+  } catch (e) {
+    sheet = ss.insertSheet(STATS_SHEET_NAME);
+  }
+  
+  // إعداد الإحصائيات
+  const statsData = [
+    ['إحصائيات المسابقة القرآنية - فرع غرب الدمام', ''],
+    ['', ''],
+    ['المؤشر', 'العدد'],
+    ['إجمالي التسجيلات', '=COUNTA(التسجيلات!B:B)-1'],
+    ['المسابقة العامة', '=COUNTIF(التسجيلات!J:J,"general")'],
+    ['المسابقة الصغرى', '=COUNTIF(التسجيلات!J:J,"minor")'],
+    ['', ''],
+    ['إحصائيات العمر', ''],
+    ['5-10 سنوات', '=COUNTIFS(التسجيلات!E:E,">=5",التسجيلات!E:E,"<=10")'],
+    ['11-15 سنة', '=COUNTIFS(التسجيلات!E:E,">=11",التسجيلات!E:E,"<=15")'],
+    ['16-20 سنة', '=COUNTIFS(التسجيلات!E:E,">=16",التسجيلات!E:E,"<=20")'],
+    ['21-23 سنة', '=COUNTIFS(التسجيلات!E:E,">=21",التسجيلات!E:E,"<=23")'],
+    ['', ''],
+    ['آخر تحديث', '=NOW()']
+  ];
+  
+  sheet.getRange(1, 1, statsData.length, 2).setValues(statsData);
+  
+  // تنسيق العنوان
+  sheet.getRange(1, 1, 1, 2).merge();
+  sheet.getRange(1, 1).setBackground('#2F346B');
+  sheet.getRange(1, 1).setFontColor('#FFFFFF');
+  sheet.getRange(1, 1).setFontWeight('bold');
+  sheet.getRange(1, 1).setHorizontalAlignment('center');
+  sheet.getRange(1, 1).setFontSize(14);
+  
+  // تنسيق رؤوس الجدول
+  sheet.getRange(3, 1, 1, 2).setBackground('#3B98EA');
+  sheet.getRange(3, 1, 1, 2).setFontColor('#FFFFFF');
+  sheet.getRange(3, 1, 1, 2).setFontWeight('bold');
+  
+  // ضبط عرض الأعمدة
+  sheet.setColumnWidth(1, 200);
+  sheet.setColumnWidth(2, 100);
+  
+  return sheet;
+}
+
+// إنشاء صفحة سجل العمليات
+function createLogsSheet(ss) {
+  let sheet;
+  
+  try {
+    sheet = ss.getSheetByName(LOGS_SHEET_NAME);
+    if (sheet) {
+      sheet.clear();
+    } else {
+      sheet = ss.insertSheet(LOGS_SHEET_NAME);
+    }
+  } catch (e) {
+    sheet = ss.insertSheet(LOGS_SHEET_NAME);
+  }
+  
+  const logHeaders = [
+    'التاريخ والوقت',
+    'نوع العملية',
+    'التفاصيل',
+    'رقم الهوية',
+    'النتيجة'
+  ];
+  
+  sheet.getRange(1, 1, 1, logHeaders.length).setValues([logHeaders]);
+  
+  // تنسيق الرؤوس
+  const headerRange = sheet.getRange(1, 1, 1, logHeaders.length);
+  headerRange.setBackground('#2F346B');
+  headerRange.setFontColor('#FFFFFF');
+  headerRange.setFontWeight('bold');
+  
+  // ضبط عرض الأعمدة
+  sheet.setColumnWidth(1, 150);
+  sheet.setColumnWidth(2, 100);
+  sheet.setColumnWidth(3, 250);
+  sheet.setColumnWidth(4, 120);
+  sheet.setColumnWidth(5, 80);
+  
+  sheet.setFrozenRows(1);
+  
+  return sheet;
+}
+// ==============================================
+// إعدادات الـ API
+// ==============================================
+
+// نقطة الدخول الرئيسية للـ API - دعم GET و POST
+function doGet(e) {
+  return handleRequest(e);
+}
+
+function doPost(e) {
+  return handleRequest(e);
+}
+
+// معالج الطلبات الموحد
+function handleRequest(e) {
+  try {
+    let data, action, callback;
+    
+    // التحقق من نوع الطلب
+    if (e.postData && e.postData.contents) {
+      // POST request
+      data = JSON.parse(e.postData.contents);
+      action = data.action;
+    } else {
+      // GET request (JSONP)
+      action = e.parameter.action;
+      callback = e.parameter.callback;
+      data = e.parameter;
+    }
+    
+    let result = {};
+    
+    switch (action) {
+      case 'register':
+        result = registerParticipant(data);
+        break;
+      case 'check':
+        result = checkRegistration(data.idNumber);
+        break;
+      case 'stats':
+        result = getStatistics();
+        break;
+      default:
+        result = { success: false, error: 'عملية غير مدعومة' };
+    }
+    
+    // إرجاع JSONP أو JSON عادي
+    if (callback) {
+      // JSONP response
+      const jsonpResponse = callback + '(' + JSON.stringify(result) + ')';
+      return ContentService
+        .createTextOutput(jsonpResponse)
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    } else {
+      // JSON response
+      return ContentService
+        .createTextOutput(JSON.stringify(result))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+  } catch (error) {
+    logOperation('خطأ', 'خطأ في معالجة الطلب', '', 'فشل');
+    const errorResult = { success: false, error: 'خطأ في الخادم: ' + error.toString() };
+    
+    const callback = e.parameter ? e.parameter.callback : null;
+    
+    if (callback) {
+      const jsonpResponse = callback + '(' + JSON.stringify(errorResult) + ')';
+      return ContentService
+        .createTextOutput(jsonpResponse)
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    } else {
+      return ContentService
+        .createTextOutput(JSON.stringify(errorResult))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+}
+
+// تسجيل مشارك جديد
+function registerParticipant(data) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet;
+    
+    try {
+      sheet = ss.getSheetByName(MAIN_SHEET_NAME);
+    } catch (e) {
+      // إذا لم توجد الصفحة، أنشئها
+      sheet = createMainSheet(ss);
+    }
+    
+    if (!sheet) {
+      return { success: false, error: 'فشل في إنشاء صفحة البيانات' };
+    }
+    
+    // التحقق من وجود تسجيل مسبق
+    const existingRecord = findRecordByIdNumber(data.idNumber);
+    if (existingRecord) {
+      logOperation('تسجيل مكرر', 'محاولة تسجيل برقم هوية موجود', data.idNumber, 'رفض');
+      return { success: false, error: 'رقم الهوية مسجل مسبقاً' };
+    }
+    
+    // إنشاء رقم تسجيل جديد
+    const registrationNumber = generateRegistrationNumber();
+    
+    // تحضير البيانات
+    const now = new Date();
+    const rowData = [
+      registrationNumber,
+      data.fullName || '',
+      data.idNumber || '',
+      data.birthDate || '',
+      data.calculatedAge || '',
+      data.mosqueName || '',
+      data.neighborhood || '',
+      data.mobileNumber || '',
+      data.altMobileNumber || '',
+      data.competitionType || '',
+      data.competitionLevel || '',
+      Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+      Utilities.formatDate(now, Session.getScriptTimeZone(), 'HH:mm:ss'),
+      'مفعل'
+    ];
+    
+    // إضافة الصف الجديد
+    sheet.appendRow(rowData);
+    
+    // تسجيل العملية
+    logOperation('تسجيل جديد', 'تم تسجيل مشارك جديد', data.idNumber, 'نجح');
+    
+    return {
+      success: true,
+      data: {
+        registrationNumber: registrationNumber,
+        message: 'تم التسجيل بنجاح'
+      }
+    };
+  } catch (error) {
+    logOperation('خطأ تسجيل', error.toString(), data.idNumber || '', 'فشل');
+    return { 
+      success: false, 
+      error: 'خطأ في التسجيل: ' + error.toString() 
+    };
+  }
+}
+
+// التحقق من وجود تسجيل
+function checkRegistration(idNumber) {
+  const record = findRecordByIdNumber(idNumber);
+  
+  if (record) {
+    logOperation('استعلام', 'استعلام عن تسجيل موجود', idNumber, 'نجح');
+    return {
+      success: true,
+      data: {
+        found: true,
+        data: {
+          registrationNumber: record[0],
+          fullName: record[1],
+          competitionType: record[9],
+          competitionLevel: record[10],
+          registrationDate: record[11]
+        }
+      }
+    };
+  } else {
+    logOperation('استعلام', 'استعلام عن تسجيل غير موجود', idNumber, 'لم يوجد');
+    return {
+      success: true,
+      data: {
+        found: false,
+        message: 'لم يتم العثور على تسجيل بهذا الرقم'
+      }
+    };
+  }
+}
+
+// الحصول على الإحصائيات
+function getStatistics() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let mainSheet;
+    
+    try {
+      mainSheet = ss.getSheetByName(MAIN_SHEET_NAME);
+    } catch (e) {
+      // إذا لم توجد الصفحة، أنشئها
+      mainSheet = createMainSheet(ss);
+    }
+    
+    if (!mainSheet) {
+      return {
+        success: true,
+        data: {
+          totalRegistrations: 0,
+          generalCompetition: 0,
+          minorCompetition: 0
+        }
+      };
+    }
+    
+    const data = mainSheet.getDataRange().getValues();
+    
+    if (data.length <= 1) {
+      return {
+        success: true,
+        data: {
+          totalRegistrations: 0,
+          generalCompetition: 0,
+          minorCompetition: 0
+        }
+      };
+    }
+    
+    let totalRegistrations = data.length - 1; // -1 للرأس
+    let generalCompetition = 0;
+    let minorCompetition = 0;
+    
+    for (let i = 1; i < data.length; i++) {
+      const competitionType = data[i][9]; // عمود نوع المسابقة
+      if (competitionType === 'general') {
+        generalCompetition++;
+      } else if (competitionType === 'minor') {
+        minorCompetition++;
+      }
+    }
+    
+    logOperation('إحصائيات', 'طلب الإحصائيات', '', 'نجح');
+    
+    return {
+      success: true,
+      data: {
+        totalRegistrations: totalRegistrations,
+        generalCompetition: generalCompetition,
+        minorCompetition: minorCompetition
+      }
+    };
+  } catch (error) {
+    logOperation('خطأ إحصائيات', error.toString(), '', 'فشل');
+    return {
+      success: false,
+      error: 'خطأ في جلب الإحصائيات: ' + error.toString()
+    };
+  }
+}
+
+// ==============================================
+// دوال مساعدة
+// ==============================================
+
+// البحث عن سجل برقم الهوية
+function findRecordByIdNumber(idNumber) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet;
+    
+    try {
+      sheet = ss.getSheetByName(MAIN_SHEET_NAME);
+    } catch (e) {
+      // إذا لم توجد الصفحة، أنشئها
+      sheet = createMainSheet(ss);
+      return null; // لا توجد سجلات في صفحة جديدة
+    }
+    
+    if (!sheet) {
+      return null;
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    
+    if (data.length <= 1) {
+      return null; // لا توجد بيانات عدا الرأس
+    }
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][2] && data[i][2].toString() === idNumber.toString()) { // عمود رقم الهوية
+        return data[i];
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    logOperation('خطأ بحث', error.toString(), idNumber, 'فشل');
+    return null;
+  }
+}
+
+// إنشاء رقم تسجيل جديد
+function generateRegistrationNumber() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet;
+    
+    try {
+      sheet = ss.getSheetByName(MAIN_SHEET_NAME);
+    } catch (e) {
+      // إذا لم توجد الصفحة، أنشئها
+      sheet = createMainSheet(ss);
+    }
+    
+    if (!sheet) {
+      return 'WD2025001'; // رقم افتراضي
+    }
+    
+    const lastRow = sheet.getLastRow();
+    
+    if (lastRow <= 1) {
+      return 'WD2025001'; // أول رقم تسجيل
+    }
+    
+    try {
+      const lastRegistrationNumber = sheet.getRange(lastRow, 1).getValue();
+      if (lastRegistrationNumber && typeof lastRegistrationNumber === 'string') {
+        const numberPart = parseInt(lastRegistrationNumber.toString().slice(-3)) + 1;
+        return 'WD2025' + numberPart.toString().padStart(3, '0');
+      } else {
+        return 'WD2025001';
+      }
+    } catch (e) {
+      // في حالة خطأ في قراءة آخر رقم، استخدم رقم تلقائي بناءً على الوقت
+      const timestamp = new Date().getTime().toString().slice(-3);
+      return 'WD2025' + timestamp;
+    }
+  } catch (error) {
+    // رقم احتياطي
+    return 'WD2025' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  }
+}
+
+// تسجيل العمليات
+function logOperation(type, details, idNumber, result) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const logSheet = ss.getSheetByName(LOGS_SHEET_NAME);
+    
+    const now = new Date();
+    const timestamp = Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+    
+    logSheet.appendRow([timestamp, type, details, idNumber, result]);
+  } catch (e) {
+    // لا نريد أن يفشل التطبيق بسبب خطأ في التسجيل
+    console.log('خطأ في تسجيل العملية: ' + e.toString());
+  }
+}
+
+// ==============================================
+// دوال اختبار (للتطوير فقط)
+// ==============================================
+
+// اختبار تسجيل مشارك
+function testRegister() {
+  const testData = {
+    action: 'register',
+    fullName: 'أحمد محمد عبدالله الأحمد',
+    idNumber: '1234567890',
+    birthDate: '2010-01-15',
+    calculatedAge: 15,
+    mosqueName: 'مسجد النور',
+    neighborhood: 'الفيصلية',
+    mobileNumber: '0501234567',
+    altMobileNumber: '',
+    competitionType: 'general',
+    competitionLevel: 'خمسة أجزاء'
+  };
+  
+  const result = registerParticipant(testData);
+  Logger.log(JSON.stringify(result));
+}
+
+// اختبار الاستعلام
+function testCheck() {
+  const result = checkRegistration('1234567890');
+  Logger.log(JSON.stringify(result));
+}
