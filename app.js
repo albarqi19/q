@@ -1356,12 +1356,11 @@ function showInquiryPage() {
         
         setTimeout(() => {
             welcomePage.style.display = 'none';
-            inquiryPage.style.display = 'block';
+            inquiryPage.style.display = 'flex';
             
-            // Show inquiry page
+            // Show inquiry page with animation
             setTimeout(() => {
-                inquiryPage.style.opacity = '1';
-                inquiryPage.style.transform = 'translateY(0)';
+                inquiryPage.classList.add('show');
             }, 50);
             
             isWelcomePage = false;
@@ -1371,11 +1370,21 @@ function showInquiryPage() {
                 clearInterval(countdownInterval);
             }
             
-            // Focus on input
+            // Focus on input and clear previous data
             const inquiryInput = document.getElementById('inquiryIdNumber');
             if (inquiryInput) {
+                inquiryInput.value = '';
                 inquiryInput.focus();
             }
+            
+            // Hide previous results
+            const resultDiv = document.getElementById('inquiryResult');
+            if (resultDiv) {
+                resultDiv.style.display = 'none';
+            }
+            
+            // Clear any errors
+            clearErrors();
         }, 300);
     }
 }
@@ -1437,7 +1446,6 @@ function showInquiryResult(data, found) {
         // تسجيل موجود
         resultDiv.innerHTML = `
             <div class="inquiry-success">
-                <div class="success-icon">✅</div>
                 <h3>تم العثور على التسجيل</h3>
                 <div class="inquiry-details">
                     <div class="detail-item">
@@ -1468,7 +1476,6 @@ function showInquiryResult(data, found) {
         // لم يتم العثور على تسجيل
         resultDiv.innerHTML = `
             <div class="inquiry-not-found">
-                <div class="error-icon">❌</div>
                 <h3>لم يتم العثور على تسجيل</h3>
                 <p>لا يوجد تسجيل بهذا الرقم في قاعدة البيانات</p>
                 <p>يمكنك التسجيل في المسابقة من الصفحة الرئيسية</p>
@@ -1476,7 +1483,12 @@ function showInquiryResult(data, found) {
         `;
     }
     
+    // إظهار النتائج مع تأثير
     resultDiv.style.display = 'block';
+    setTimeout(() => {
+        resultDiv.style.opacity = '1';
+        resultDiv.style.transform = 'translateY(0)';
+    }, 100);
 }
 
 // ==============================================

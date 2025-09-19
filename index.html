@@ -74,9 +74,15 @@
                         </div>
                     </div>
                     
-                    <button class="start-btn" id="startBtn" onclick="startRegistration()">
-                        ابدأ التسجيل الآن
-                    </button>
+                    <div class="action-buttons">
+                        <button class="start-btn" id="startBtn" onclick="startRegistration()">
+                            ابدأ التسجيل الآن
+                        </button>
+                        
+                        <button class="inquiry-btn" id="inquiryBtn" onclick="showInquiryPage()">
+                            الاستعلام عن حالة التسجيل
+                        </button>
+                    </div>
                     
                     <div class="registration-status" id="registrationStatus"></div>
                 </div>
@@ -325,22 +331,28 @@
             <div class="inquiry-container">
                 <div class="card">
                     <div class="card__body">
-                        <button class="back-to-welcome-btn" onclick="backToWelcome()" title="العودة للصفحة الرئيسية">
-                            ← الرئيسية
-                        </button>
-                        
-                        <h2>الاستعلام عن التسجيل</h2>
-                        <p>أدخل رقم الهوية أو الإقامة للاستعلام عن حالة التسجيل</p>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="inquiryIdNumber">رقم الهوية أو الإقامة</label>
-                            <input type="number" id="inquiryIdNumber" class="form-control" placeholder="أدخل رقم الهوية أو الإقامة">
-                            <div class="error-message" id="inquiryIdError"></div>
+                        <div class="inquiry-header">
+                            <button class="back-to-welcome-btn" onclick="backToWelcome()" title="العودة للصفحة الرئيسية">
+                                ← الرئيسية
+                            </button>
+                            
+                            <div class="inquiry-title-section">
+                                <h2>الاستعلام عن التسجيل</h2>
+                                <p class="inquiry-subtitle">أدخل رقم الهوية أو الإقامة للاستعلام عن حالة التسجيل</p>
+                            </div>
                         </div>
                         
-                        <button type="button" class="btn btn--primary" id="inquirySubmitBtn" onclick="performInquiry()">
-                            استعلام
-                        </button>
+                        <div class="inquiry-form">
+                            <div class="form-group">
+                                <label class="form-label" for="inquiryIdNumber">رقم الهوية أو الإقامة</label>
+                                <input type="number" id="inquiryIdNumber" class="form-control" placeholder="أدخل رقم الهوية أو الإقامة">
+                                <div class="error-message" id="inquiryIdError"></div>
+                            </div>
+                            
+                            <button type="button" class="btn btn--primary inquiry-submit-btn" id="inquirySubmitBtn" onclick="performInquiry()">
+                                استعلام
+                            </button>
+                        </div>
                         
                         <div class="inquiry-result" id="inquiryResult" style="display: none;">
                             <!-- نتيجة الاستعلام ستظهر هنا -->

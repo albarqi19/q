@@ -811,6 +811,50 @@ body {
     box-shadow: 0 8px 25px rgba(50, 53, 101, 0.4);
 }
 
+/* Action Buttons Container */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Inquiry Button */
+.inquiry-btn {
+    background: var(--color-secondary-turquoise);
+    color: white;
+    padding: var(--space-12) var(--space-24);
+    font-size: 1rem;
+    font-weight: 500;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-standard);
+    box-shadow: 0 4px 16px rgba(59, 152, 234, 0.3);
+    min-width: 200px;
+    width: 100%;
+}
+
+.inquiry-btn:hover {
+    background: var(--color-secondary-turquoise-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 152, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        gap: var(--spacing-sm);
+    }
+    
+    .start-btn,
+    .inquiry-btn {
+        font-size: 0.95rem;
+        padding: var(--space-14) var(--space-20);
+    }
+}
+
 /* Registration Form Styling */
 .registration-form {
     opacity: 0;
@@ -1892,48 +1936,69 @@ input[type="date"]:focus::-webkit-datetime-edit-text {
 .inquiry-page {
     position: relative;
     min-height: 100vh;
-    padding: var(--spacing-xl) var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-md);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.3s ease;
+    background: var(--color-background);
+}
+
+.inquiry-page.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .inquiry-container {
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-.inquiry-btn {
-    background: #323565;
-    color: white;
-    padding: var(--space-16) var(--space-32);
-    font-size: 1.2rem;
-    font-weight: 600;
-    border: none;
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-standard);
-    box-shadow: 0 4px 16px rgba(50, 53, 101, 0.3);
-    min-width: 200px;
-    width: 100%;
+.inquiry-header {
+    position: relative;
+    margin-bottom: var(--spacing-xl);
+}
+
+.inquiry-title-section {
     text-align: center;
-    margin-top: 0;
+    margin-top: var(--spacing-lg);
 }
 
-.inquiry-btn:hover {
-    background: #2a2d56;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(50, 53, 101, 0.4);
+.inquiry-title-section h2 {
+    color: var(--color-primary-navy);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+}
+
+.inquiry-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+.inquiry-form {
+    margin: var(--spacing-xl) 0;
+}
+
+.inquiry-submit-btn {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: var(--spacing-md);
 }
 
 .inquiry-result {
-    margin-top: var(--spacing-lg);
-    padding: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-xl);
     border-radius: var(--border-radius-lg);
-    animation: fadeInUp 0.3s ease;
+    animation: fadeInUp 0.5s ease;
+    border: 1px solid var(--color-border-light);
 }
 
 .inquiry-success {
@@ -1942,13 +2007,40 @@ input[type="date"]:focus::-webkit-datetime-edit-text {
 }
 
 .inquiry-success .success-icon {
-    font-size: 3rem;
-    margin-bottom: var(--spacing-md);
+    font-size: 4rem;
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-success);
 }
 
 .inquiry-success h3 {
     color: var(--color-success);
+    font-size: 1.5rem;
+    font-weight: 600;
     margin-bottom: var(--spacing-lg);
+}
+
+.inquiry-not-found {
+    text-align: center;
+    color: var(--color-text-primary);
+}
+
+.inquiry-not-found .error-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-error);
+}
+
+.inquiry-not-found h3 {
+    color: var(--color-error);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-lg);
+}
+
+.inquiry-not-found p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.6;
 }
 
 .inquiry-details {
@@ -1957,6 +2049,14 @@ input[type="date"]:focus::-webkit-datetime-edit-text {
     padding: var(--spacing-lg);
     border-radius: var(--border-radius-md);
     margin: var(--spacing-lg) 0;
+}
+
+.inquiry-note {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    margin-top: var(--spacing-lg);
+    text-align: center;
+    font-style: italic;
 }
 
 .detail-item {
