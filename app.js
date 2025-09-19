@@ -8,6 +8,7 @@ let isWelcomePage = true;
 
 // API Configuration
 const API_URL = 'https://script.google.com/macros/s/AKfycbx69ghpVbcGHsLvk_0sY8AlE_0ner4n67Y1ag7iMhdx8DiWoXoVdtKOc1lM3BbOPjK1Vg/exec';
+const OFFLINE_MODE = false; // تغيير إلى true للعمل بدون API
 
 // Registration dates
 const REGISTRATION_START = new Date('2025-09-18T00:00:00+03:00'); // 18 سبتمبر 2025
@@ -676,19 +677,24 @@ async function validatePersonalInfoWithAPI() {
     } else if (idNumber.length !== 10 || !/^\d{10}$/.test(idNumber)) {
         showError('idNumberError', 'يجب أن يكون رقم الهوية أو الإقامة 10 أرقام');
         isValid = false;
-    } else {
+    } else if (!OFFLINE_MODE) {
         // التحقق من التسجيل المكرر عبر API
         showLoadingMessage('idNumberError', 'جاري التحقق من رقم الهوية...');
         
-        const checkResult = await checkExistingRegistration(idNumber);
-        hideLoadingMessage('idNumberError');
-        
-        if (!checkResult.success) {
-            showError('idNumberError', 'خطأ في التحقق من البيانات، يرجى المحاولة مرة أخرى');
-            isValid = false;
-        } else if (checkResult.data && checkResult.data.found) {
-            showError('idNumberError', 'رقم الهوية مسجل مسبقاً في المسابقة');
-            isValid = false;
+        try {
+            const checkResult = await checkExistingRegistration(idNumber);
+            hideLoadingMessage('idNumberError');
+            
+            if (!checkResult.success) {
+                // في حالة فشل API، نعرض تحذير لكن نسمح بالمتابعة
+                showWarning('idNumberError', 'تعذر التحقق من قاعدة البيانات، يمكنك المتابعة');
+            } else if (checkResult.data && checkResult.data.found) {
+                showError('idNumberError', 'رقم الهوية مسجل مسبقاً في المسابقة');
+                isValid = false;
+            }
+        } catch (error) {
+            hideLoadingMessage('idNumberError');
+            showWarning('idNumberError', 'تعذر التحقق من قاعدة البيانات، يمكنك المتابعة');
         }
     }
 
@@ -1167,7 +1173,7 @@ window.showImageError = showImageError;
 // API Functions
 // ==============================================
 
-// عامة لإرسال طلبات API
+// عامة لإرسال طلبات API باستخدام JSONP لتجنب مشكلة CORS
 async function callAPI(action, data = {}) {
     try {
         const requestData = {
@@ -1175,16 +1181,43 @@ async function callAPI(action, data = {}) {
             ...data
         };
 
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData)
+        // استخدام JSONP بدلاً من fetch
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            
+            // إنشاء الـ callback
+            window[callbackName] = function(data) {
+                resolve(data);
+                document.head.removeChild(script);
+                delete window[callbackName];
+            };
+
+            // إنشاء URL مع المعاملات
+            const params = new URLSearchParams({
+                callback: callbackName,
+                ...requestData
+            });
+            
+            script.src = API_URL + '?' + params.toString();
+            script.onerror = () => {
+                reject(new Error('خطأ في تحميل البيانات'));
+                document.head.removeChild(script);
+                delete window[callbackName];
+            };
+            
+            document.head.appendChild(script);
+            
+            // timeout بعد 10 ثواني
+            setTimeout(() => {
+                if (window[callbackName]) {
+                    reject(new Error('انتهت مهلة الاتصال'));
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                }
+            }, 10000);
         });
 
-        const result = await response.json();
-        return result;
     } catch (error) {
         console.error('خطأ في الاتصال بـ API:', error);
         return {
