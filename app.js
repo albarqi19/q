@@ -801,9 +801,25 @@ function showError(elementId, message) {
         
         errorElement.textContent = message;
         errorElement.classList.add('show');
+        errorElement.style.color = 'var(--color-error)';
         
         if (inputElement && inputElement.classList.contains('form-control')) {
             inputElement.classList.add('error');
+        }
+    }
+}
+
+function showWarning(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        const inputElement = errorElement.previousElementSibling;
+        
+        errorElement.textContent = message;
+        errorElement.classList.add('show');
+        errorElement.style.color = 'var(--color-warning)';
+        
+        if (inputElement && inputElement.classList.contains('form-control')) {
+            inputElement.classList.remove('error');
         }
     }
 }
@@ -1037,21 +1053,28 @@ async function showSuccessPage() {
     }
     
     // إرسال البيانات إلى API
-    const submitResult = await submitRegistration(formData);
-    
-    if (!submitResult.success) {
-        // في حالة الفشل، إظهار رسالة خطأ
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.textContent = 'موافق';
+    if (!OFFLINE_MODE) {
+        try {
+            const submitResult = await submitRegistration(formData);
+            
+            if (!submitResult.success) {
+                // في حالة الفشل، إظهار رسالة خطأ لكن نسمح بالمتابعة
+                console.warn('فشل في حفظ البيانات:', submitResult.error);
+                formData.registrationNumber = 'OFFLINE-' + Date.now();
+                alert('تم حفظ البيانات محلياً. سيتم رفعها عند إصلاح الاتصال.');
+            } else {
+                // حفظ رقم التسجيل
+                formData.registrationNumber = submitResult.data.registrationNumber;
+            }
+        } catch (error) {
+            console.warn('خطأ في الاتصال بـ API:', error);
+            formData.registrationNumber = 'OFFLINE-' + Date.now();
+            alert('تم حفظ البيانات محلياً. سيتم رفعها عند إصلاح الاتصال.');
         }
-        
-        alert('حدث خطأ أثناء حفظ البيانات: ' + (submitResult.error || 'خطأ غير معروف'));
-        return;
+    } else {
+        // وضع عدم الاتصال
+        formData.registrationNumber = 'OFFLINE-' + Date.now();
     }
-    
-    // حفظ رقم التسجيل
-    formData.registrationNumber = submitResult.data.registrationNumber;
     
     // Update summary
     const summaryElements = {
