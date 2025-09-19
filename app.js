@@ -6,6 +6,9 @@ let formData = {};
 // Page navigation variables
 let isWelcomePage = true;
 
+// API Configuration
+const API_URL = 'https://script.google.com/macros/s/AKfycbx69ghpVbcGHsLvk_0sY8AlE_0ner4n67Y1ag7iMhdx8DiWoXoVdtKOc1lM3BbOPjK1Vg/exec';
+
 // Registration dates
 const REGISTRATION_START = new Date('2025-09-18T00:00:00+03:00'); // 18 سبتمبر 2025
 const REGISTRATION_END = new Date('2025-10-02T23:59:59+03:00'); // 2 أكتوبر 2025 (بعد أسبوعين)
@@ -285,17 +288,38 @@ function backToWelcome() {
     
     const welcomePage = document.getElementById('welcomePage');
     const registrationForm = document.getElementById('registrationForm');
+    const inquiryPage = document.getElementById('inquiryPage');
     
-    if (welcomePage && registrationForm) {
-        // Hide registration form
+    // Hide any visible page
+    if (registrationForm && registrationForm.style.display !== 'none') {
         registrationForm.style.opacity = '0';
         registrationForm.style.transform = 'translateY(20px)';
         
         setTimeout(() => {
             registrationForm.style.display = 'none';
+            showWelcomePage();
+        }, 300);
+    } else if (inquiryPage && inquiryPage.style.display !== 'none') {
+        inquiryPage.style.opacity = '0';
+        inquiryPage.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            inquiryPage.style.display = 'none';
+            showWelcomePage();
+            
+            // Clear inquiry form
+            document.getElementById('inquiryIdNumber').value = '';
+            document.getElementById('inquiryResult').style.display = 'none';
+            document.getElementById('inquiryIdError').classList.remove('show');
+        }, 300);
+    } else {
+        showWelcomePage();
+    }
+    
+    function showWelcomePage() {
+        if (welcomePage) {
             welcomePage.style.display = 'block';
             
-            // Show welcome page
             setTimeout(() => {
                 welcomePage.style.opacity = '1';
                 welcomePage.style.transform = 'translateY(0)';
@@ -308,7 +332,7 @@ function backToWelcome() {
             
             // Reset form
             resetForm();
-        }, 300);
+        }
     }
 }
 
@@ -380,11 +404,6 @@ function initializeEventListeners() {
     numberInputs.forEach(input => {
         input.addEventListener('input', function(e) {
             e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            
-            // Check age restrictions when age is entered
-            if (e.target.id === 'age') {
-                checkAgeRestrictions();
-            }
         });
         
         // Prevent non-numeric keypress
@@ -394,6 +413,45 @@ function initializeEventListeners() {
             }
         });
     });
+
+    // Add birth date change handler
+    const birthDateInput = document.getElementById('birthDate');
+    if (birthDateInput) {
+        birthDateInput.addEventListener('change', function() {
+            // Calculate age when birth date changes
+            if (this.value) {
+                const birth = new Date(this.value);
+                const today = new Date();
+                let age = today.getFullYear() - birth.getFullYear();
+                const monthDiff = today.getMonth() - birth.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                    age--;
+                }
+                
+                formData.calculatedAge = age;
+                
+                // Clear previous error
+                const errorElement = document.getElementById('birthDateError');
+                if (errorElement) {
+                    errorElement.classList.remove('show');
+                    this.classList.remove('error');
+                }
+                
+                // Show immediate feedback for age restrictions
+                if (age < 5) {
+                    showError('birthDateError', 'يجب أن يكون العمر 5 سنوات فأكثر');
+                } else if (age > 23) {
+                    showError('birthDateError', 'عذراً، المسابقة مخصصة للأعمار من 5 إلى 23 سنة فقط');
+                }
+                
+                // Check age restrictions if we're on step 3
+                if (currentStep === 3) {
+                    checkAgeRestrictions();
+                }
+            }
+        });
+    }
 
     // Add Enter key navigation
     document.addEventListener('keydown', function(e) {
@@ -435,11 +493,14 @@ function populateDates() {
 }
 
 // Navigation functions
-function nextStep(step) {
+async function nextStep(step) {
     console.log('Next step called for step:', step);
     
-    if (validateStep(step)) {
-        saveStepData(step);
+    // Validate current step
+    let isValid = await validateStep(step);
+    
+    if (isValid) {
+        await saveStepData(step);
         
         if (step < totalSteps) {
             showStep(step + 1);
@@ -516,14 +577,14 @@ function updateStepIndicators() {
 }
 
 // Validation functions
-function validateStep(step) {
+async function validateStep(step) {
     console.log('Validating step:', step);
     clearErrors();
     let isValid = true;
 
     switch(step) {
         case 1:
-            isValid = validatePersonalInfo();
+            isValid = await validatePersonalInfoWithAPI();
             break;
         case 2:
             isValid = validateContactInfo();
@@ -556,21 +617,106 @@ function validatePersonalInfo() {
     // ID number validation
     const idNumber = document.getElementById('idNumber').value.trim();
     if (!idNumber) {
-        showError('idNumberError', 'يرجى إدخال رقم الهوية');
+        showError('idNumberError', 'يرجى إدخال رقم الهوية أو الإقامة');
         isValid = false;
     } else if (idNumber.length !== 10 || !/^\d{10}$/.test(idNumber)) {
-        showError('idNumberError', 'يجب أن يكون رقم الهوية 10 أرقام');
+        showError('idNumberError', 'يجب أن يكون رقم الهوية أو الإقامة 10 أرقام');
         isValid = false;
     }
 
-    // Age validation
-    const age = document.getElementById('age').value.trim();
-    if (!age) {
-        showError('ageError', 'يرجى إدخال العمر');
+    // Birth date validation
+    const birthDate = document.getElementById('birthDate').value;
+    if (!birthDate) {
+        showError('birthDateError', 'يرجى إدخال تاريخ الميلاد');
         isValid = false;
-    } else if (parseInt(age) < 5 || parseInt(age) > 80) {
-        showError('ageError', 'يجب أن يكون العمر بين 5 و 80 سنة');
+    } else {
+        const birth = new Date(birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        
+        if (age < 5) {
+            showError('birthDateError', 'يجب أن يكون العمر 5 سنوات فأكثر');
+            isValid = false;
+        } else if (age > 23) {
+            showError('birthDateError', 'عذراً، المسابقة مخصصة للأعمار من 5 إلى 23 سنة فقط');
+            isValid = false;
+        }
+        
+        // Store calculated age in formData for use in other functions
+        formData.calculatedAge = age;
+    }
+
+    return isValid;
+}
+
+// التحقق من البيانات الشخصية مع API
+async function validatePersonalInfoWithAPI() {
+    let isValid = true;
+    
+    // Full name validation
+    const fullName = document.getElementById('fullName').value.trim();
+    if (!fullName) {
+        showError('fullNameError', 'يرجى إدخال الاسم الرباعي');
         isValid = false;
+    } else if (fullName.split(' ').length < 2) {
+        showError('fullNameError', 'يرجى إدخال الاسم الرباعي كاملاً');
+        isValid = false;
+    }
+
+    // ID number validation
+    const idNumber = document.getElementById('idNumber').value.trim();
+    if (!idNumber) {
+        showError('idNumberError', 'يرجى إدخال رقم الهوية أو الإقامة');
+        isValid = false;
+    } else if (idNumber.length !== 10 || !/^\d{10}$/.test(idNumber)) {
+        showError('idNumberError', 'يجب أن يكون رقم الهوية أو الإقامة 10 أرقام');
+        isValid = false;
+    } else {
+        // التحقق من التسجيل المكرر عبر API
+        showLoadingMessage('idNumberError', 'جاري التحقق من رقم الهوية...');
+        
+        const checkResult = await checkExistingRegistration(idNumber);
+        hideLoadingMessage('idNumberError');
+        
+        if (!checkResult.success) {
+            showError('idNumberError', 'خطأ في التحقق من البيانات، يرجى المحاولة مرة أخرى');
+            isValid = false;
+        } else if (checkResult.data && checkResult.data.found) {
+            showError('idNumberError', 'رقم الهوية مسجل مسبقاً في المسابقة');
+            isValid = false;
+        }
+    }
+
+    // Birth date validation
+    const birthDate = document.getElementById('birthDate').value;
+    if (!birthDate) {
+        showError('birthDateError', 'يرجى إدخال تاريخ الميلاد');
+        isValid = false;
+    } else {
+        const birth = new Date(birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        
+        if (age < 5) {
+            showError('birthDateError', 'يجب أن يكون العمر 5 سنوات فأكثر');
+            isValid = false;
+        } else if (age > 23) {
+            showError('birthDateError', 'عذراً، المسابقة مخصصة للأعمار من 5 إلى 23 سنة فقط');
+            isValid = false;
+        }
+        
+        // Store calculated age in formData for use in other functions
+        formData.calculatedAge = age;
     }
 
     return isValid;
@@ -583,6 +729,13 @@ function validateContactInfo() {
     const mosqueName = document.getElementById('mosqueName').value.trim();
     if (!mosqueName) {
         showError('mosqueNameError', 'يرجى إدخال اسم المسجد');
+        isValid = false;
+    }
+
+    // Neighborhood validation
+    const neighborhood = document.getElementById('neighborhood').value.trim();
+    if (!neighborhood) {
+        showError('neighborhoodError', 'يرجى إدخال اسم الحي');
         isValid = false;
     }
 
@@ -663,18 +816,51 @@ function clearErrors() {
     });
 }
 
+// إظهار رسالة تحميل
+function showLoadingMessage(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.classList.add('show', 'loading');
+        errorElement.style.color = '#3B98EA';
+    }
+}
+
+// إخفاء رسالة التحميل
+function hideLoadingMessage(elementId) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.classList.remove('show', 'loading');
+        errorElement.style.color = '';
+    }
+}
+
 // Save step data
-function saveStepData(step) {
+async function saveStepData(step) {
     console.log('Saving data for step:', step);
     
     switch(step) {
         case 1:
             formData.fullName = document.getElementById('fullName').value.trim();
             formData.idNumber = document.getElementById('idNumber').value.trim();
-            formData.age = document.getElementById('age').value.trim();
+            formData.birthDate = document.getElementById('birthDate').value;
+            
+            // Calculate age from birth date
+            if (formData.birthDate) {
+                const birth = new Date(formData.birthDate);
+                const today = new Date();
+                let age = today.getFullYear() - birth.getFullYear();
+                const monthDiff = today.getMonth() - birth.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                    age--;
+                }
+                formData.calculatedAge = age;
+            }
             break;
         case 2:
             formData.mosqueName = document.getElementById('mosqueName').value.trim();
+            formData.neighborhood = document.getElementById('neighborhood').value.trim();
             formData.mobileNumber = document.getElementById('mobileNumber').value.trim();
             formData.altMobileNumber = document.getElementById('altMobileNumber').value.trim();
             break;
@@ -686,7 +872,7 @@ function saveStepData(step) {
             break;
         case 4:
             formData.agreeTerms = document.getElementById('agreeTerms').checked;
-            showSuccessPage();
+            await showSuccessPage();
             break;
     }
     
@@ -736,13 +922,30 @@ function toggleLevelOptions() {
 
 // Check age restrictions and update competition options
 function checkAgeRestrictions() {
-    const age = parseInt(document.getElementById('age').value);
+    let age = formData.calculatedAge;
+    
+    // If we don't have calculated age, try to calculate from birth date
+    if (!age) {
+        const birthDate = document.getElementById('birthDate').value;
+        if (birthDate) {
+            const birth = new Date(birthDate);
+            const today = new Date();
+            age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            formData.calculatedAge = age;
+        }
+    }
+    
     const generalCard = document.querySelector('.competition-card[data-type="general"]');
     const minorCard = document.querySelector('.competition-card[data-type="minor"]');
     const generalInput = document.getElementById('general');
     const minorInput = document.getElementById('minor');
     
-    if (!age || age < 5) return; // No restrictions if age not entered or too young
+    if (!age || age < 5) return; // No restrictions if age not calculated or too young
     
     // Reset all cards first
     generalInput.disabled = false;
@@ -817,15 +1020,41 @@ function hideAgeRestrictionMessage() {
 }
 
 // Show success page with summary
-function showSuccessPage() {
+async function showSuccessPage() {
     console.log('Showing success page');
+    
+    // عرض رسالة تحميل
+    const submitButton = document.querySelector('#formStep4 .next-btn');
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'جاري الحفظ...';
+    }
+    
+    // إرسال البيانات إلى API
+    const submitResult = await submitRegistration(formData);
+    
+    if (!submitResult.success) {
+        // في حالة الفشل، إظهار رسالة خطأ
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'موافق';
+        }
+        
+        alert('حدث خطأ أثناء حفظ البيانات: ' + (submitResult.error || 'خطأ غير معروف'));
+        return;
+    }
+    
+    // حفظ رقم التسجيل
+    formData.registrationNumber = submitResult.data.registrationNumber;
     
     // Update summary
     const summaryElements = {
         summaryName: formData.fullName,
         summaryId: formData.idNumber,
-        summaryAge: formData.age + ' سنة',
+        summaryBirthDate: formData.birthDate,
+        summaryAge: formData.calculatedAge + ' سنة',
         summaryMosque: formData.mosqueName,
+        summaryNeighborhood: formData.neighborhood,
         summaryMobile: formData.mobileNumber
     };
     
@@ -842,6 +1071,12 @@ function showSuccessPage() {
     
     if (summaryCompetition) summaryCompetition.textContent = competitionTypeName;
     if (summaryLevel) summaryLevel.textContent = formData.competitionLevel;
+    
+    // إضافة رقم التسجيل إلى صفحة النجاح
+    const successMessage = document.querySelector('.success-message');
+    if (successMessage && formData.registrationNumber) {
+        successMessage.innerHTML = `تم التسجيل بنجاح برقم: <strong>${formData.registrationNumber}</strong><br>سيتم التواصل معك قريباً. يمكنك الاستعلام عن تسجيلك برقم الهوية`;
+    }
     
     // Show step 5
     showStep(5);
@@ -893,7 +1128,7 @@ function addRealTimeValidation() {
             // Validate based on input type and current step
             if (currentStep === 1 && this.id === 'idNumber' && this.value) {
                 if (!/^\d{10}$/.test(this.value)) {
-                    showError(this.id + 'Error', 'يجب أن يكون رقم الهوية 10 أرقام');
+                    showError(this.id + 'Error', 'يجب أن يكون رقم الهوية أو الإقامة 10 أرقام');
                 }
             }
             
@@ -922,3 +1157,248 @@ window.checkAgeRestrictions = checkAgeRestrictions;
 window.startRegistration = startRegistration;
 window.backToWelcome = backToWelcome;
 window.debugFormState = debugFormState;
+window.showInquiryPage = showInquiryPage;
+window.performInquiry = performInquiry;
+window.showAnnouncement = showAnnouncement;
+window.closeAnnouncement = closeAnnouncement;
+window.showImageError = showImageError;
+
+// ==============================================
+// API Functions
+// ==============================================
+
+// عامة لإرسال طلبات API
+async function callAPI(action, data = {}) {
+    try {
+        const requestData = {
+            action: action,
+            ...data
+        };
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('خطأ في الاتصال بـ API:', error);
+        return {
+            success: false,
+            error: 'خطأ في الاتصال بالخادم'
+        };
+    }
+}
+
+// التحقق من وجود تسجيل مسبق
+async function checkExistingRegistration(idNumber) {
+    return await callAPI('check', { idNumber: idNumber });
+}
+
+// تسجيل مشارك جديد
+async function submitRegistration(formData) {
+    return await callAPI('register', formData);
+}
+
+// الحصول على الإحصائيات
+async function getRegistrationStats() {
+    return await callAPI('stats');
+}
+
+// ==============================================
+// Inquiry Functions
+// ==============================================
+
+// إظهار صفحة الاستعلام
+function showInquiryPage() {
+    const welcomePage = document.getElementById('welcomePage');
+    const inquiryPage = document.getElementById('inquiryPage');
+    
+    if (welcomePage && inquiryPage) {
+        // Hide welcome page
+        welcomePage.style.opacity = '0';
+        welcomePage.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+            welcomePage.style.display = 'none';
+            inquiryPage.style.display = 'block';
+            
+            // Show inquiry page
+            setTimeout(() => {
+                inquiryPage.style.opacity = '1';
+                inquiryPage.style.transform = 'translateY(0)';
+            }, 50);
+            
+            isWelcomePage = false;
+            
+            // Clear countdown when entering inquiry
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            // Focus on input
+            const inquiryInput = document.getElementById('inquiryIdNumber');
+            if (inquiryInput) {
+                inquiryInput.focus();
+            }
+        }, 300);
+    }
+}
+
+// تنفيذ الاستعلام
+async function performInquiry() {
+    const idNumber = document.getElementById('inquiryIdNumber').value.trim();
+    const submitBtn = document.getElementById('inquirySubmitBtn');
+    const resultDiv = document.getElementById('inquiryResult');
+    
+    // التحقق من صحة رقم الهوية
+    if (!idNumber) {
+        showError('inquiryIdError', 'يرجى إدخال رقم الهوية أو الإقامة');
+        return;
+    }
+    
+    if (idNumber.length !== 10 || !/^\d{10}$/.test(idNumber)) {
+        showError('inquiryIdError', 'يجب أن يكون رقم الهوية أو الإقامة 10 أرقام');
+        return;
+    }
+    
+    // مسح الأخطاء السابقة
+    document.getElementById('inquiryIdError').classList.remove('show');
+    
+    // تعطيل الزر وإظهار رسالة التحميل
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'جاري البحث...';
+    
+    try {
+        // استدعاء API
+        const result = await checkExistingRegistration(idNumber);
+        
+        if (result.success) {
+            if (result.data.found) {
+                // إظهار بيانات التسجيل
+                showInquiryResult(result.data.data, true);
+            } else {
+                // لم يتم العثور على تسجيل
+                showInquiryResult(null, false);
+            }
+        } else {
+            // خطأ في الاستعلام
+            showError('inquiryIdError', result.error || 'حدث خطأ أثناء البحث');
+        }
+    } catch (error) {
+        showError('inquiryIdError', 'خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+    } finally {
+        // إعادة تفعيل الزر
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'استعلام';
+    }
+}
+
+// إظهار نتيجة الاستعلام
+function showInquiryResult(data, found) {
+    const resultDiv = document.getElementById('inquiryResult');
+    
+    if (found && data) {
+        // تسجيل موجود
+        resultDiv.innerHTML = `
+            <div class="inquiry-success">
+                <div class="success-icon">✅</div>
+                <h3>تم العثور على التسجيل</h3>
+                <div class="inquiry-details">
+                    <div class="detail-item">
+                        <span class="detail-label">رقم التسجيل:</span>
+                        <span class="detail-value">${data.registrationNumber}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">الاسم:</span>
+                        <span class="detail-value">${data.fullName}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">نوع المسابقة:</span>
+                        <span class="detail-value">${data.competitionType === 'general' ? 'المسابقة العامة' : 'المسابقة الصغرى'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">الفرع:</span>
+                        <span class="detail-value">${data.competitionLevel}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">تاريخ التسجيل:</span>
+                        <span class="detail-value">${data.registrationDate}</span>
+                    </div>
+                </div>
+                <p class="inquiry-note">سيتم التواصل معك قريباً عبر رسائل الواتساب</p>
+            </div>
+        `;
+    } else {
+        // لم يتم العثور على تسجيل
+        resultDiv.innerHTML = `
+            <div class="inquiry-not-found">
+                <div class="error-icon">❌</div>
+                <h3>لم يتم العثور على تسجيل</h3>
+                <p>لا يوجد تسجيل بهذا الرقم في قاعدة البيانات</p>
+                <p>يمكنك التسجيل في المسابقة من الصفحة الرئيسية</p>
+            </div>
+        `;
+    }
+    
+    resultDiv.style.display = 'block';
+}
+
+// ==============================================
+// Announcement Functions
+// ==============================================
+
+// إظهار إعلان المسابقة
+function showAnnouncement() {
+    const modal = document.getElementById('announcementModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // منع التمرير في الخلفية
+        
+        // إضافة تأثير الظهور
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+    }
+}
+
+// إغلاق إعلان المسابقة
+function closeAnnouncement() {
+    const modal = document.getElementById('announcementModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = ''; // إعادة التمرير
+        
+        // إخفاء المودال بعد انتهاء التأثير
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+}
+
+// إظهار رسالة خطأ الصورة
+function showImageError() {
+    const errorDiv = document.getElementById('imageError');
+    const img = document.querySelector('.announcement-image');
+    
+    if (errorDiv && img) {
+        img.style.display = 'none';
+        errorDiv.style.display = 'block';
+    }
+}
+
+// إغلاق المودال عند الضغط خارجه
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('announcementModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeAnnouncement();
+            }
+        });
+    }
+});

@@ -801,6 +801,8 @@ body {
     transition: all var(--duration-normal) var(--ease-standard);
     box-shadow: 0 4px 16px rgba(50, 53, 101, 0.3);
     min-width: 200px;
+    width: 100%;
+    margin-bottom: 12px;
 }
 
 .start-btn:hover {
@@ -1817,5 +1819,391 @@ select {
         break-inside: avoid;
         box-shadow: none;
         border: 1px solid #ccc;
+    }
+}
+
+/* Additional styles for new elements */
+.info-message {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: rgba(var(--color-info-rgb), 0.1);
+    border: 1px solid rgba(var(--color-info-rgb), 0.2);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-primary-navy);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+
+.info-message .info-icon {
+    font-size: var(--font-size-lg);
+    color: var(--color-info);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.info-message p {
+    margin: 0;
+    flex: 1;
+}
+
+.form-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+    line-height: 1.4;
+}
+
+/* Birth date input styles */
+input[type="date"] {
+    position: relative;
+    font-family: var(--font-family-primary);
+    color: var(--color-text-primary);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    color: var(--color-primary);
+    opacity: 1;
+    cursor: pointer;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+    color: var(--color-text-primary);
+}
+
+input[type="date"]::-webkit-datetime-edit-text {
+    color: var(--color-text-secondary);
+    padding: 0 0.3em;
+}
+
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+    color: var(--color-text-primary);
+}
+
+input[type="date"]:focus::-webkit-datetime-edit-text {
+    color: var(--color-primary);
+}
+
+/* Inquiry page styles */
+.inquiry-page {
+    position: relative;
+    min-height: 100vh;
+    padding: var(--spacing-xl) var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.inquiry-container {
+    width: 100%;
+    max-width: 500px;
+}
+
+.inquiry-btn {
+    background: #323565;
+    color: white;
+    padding: var(--space-16) var(--space-32);
+    font-size: 1.2rem;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-standard);
+    box-shadow: 0 4px 16px rgba(50, 53, 101, 0.3);
+    min-width: 200px;
+    width: 100%;
+    text-align: center;
+    margin-top: 0;
+}
+
+.inquiry-btn:hover {
+    background: #2a2d56;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(50, 53, 101, 0.4);
+}
+
+.inquiry-result {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    animation: fadeInUp 0.3s ease;
+}
+
+.inquiry-success {
+    text-align: center;
+    color: var(--color-text-primary);
+}
+
+.inquiry-success .success-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.inquiry-success h3 {
+    color: var(--color-success);
+    margin-bottom: var(--spacing-lg);
+}
+
+.inquiry-details {
+    text-align: right;
+    background: var(--color-bg-1);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    margin: var(--spacing-lg) 0;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.detail-value {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.inquiry-note {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-align: center;
+    margin-top: var(--spacing-lg);
+    font-style: italic;
+}
+
+.inquiry-not-found {
+    text-align: center;
+    color: var(--color-text-primary);
+}
+
+.inquiry-not-found .error-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.inquiry-not-found h3 {
+    color: var(--color-error);
+    margin-bottom: var(--spacing-md);
+}
+
+.inquiry-not-found p {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Loading state for error messages */
+.error-message.loading {
+    color: var(--color-info) !important;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Announcement Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    position: relative;
+    background: var(--color-white);
+    border-radius: var(--border-radius-xl);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal.show .modal-content {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: var(--color-primary-navy);
+    color: var(--color-white);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--color-white);
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: var(--spacing-xl);
+}
+
+.announcement-image {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.image-error {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--color-text-secondary);
+}
+
+.image-error p {
+    margin: var(--spacing-sm) 0;
+    line-height: 1.6;
+}
+
+/* Feature clickable style */
+.feature {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm);
+}
+
+.feature:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-navy-rgb), 0.15);
+    background: rgba(var(--color-primary-navy-rgb), 0.05);
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+    .modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+        margin: var(--spacing-md);
+    }
+    
+    .modal-header {
+        padding: var(--spacing-md);
+    }
+    
+    .modal-header h3 {
+        font-size: var(--font-size-md);
+    }
+    
+    .modal-body {
+        padding: var(--spacing-lg);
+    }
+}
+
+/* Announcement Modal Styles */
+.announcement-content {
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.announcement-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    margin-top: var(--spacing-md);
+}
+
+.close {
+    color: var(--color-text-muted);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-lg);
+    transition: all 0.3s ease;
+}
+
+.close:hover,
+.close:focus {
+    color: var(--color-text-primary);
+    text-decoration: none;
+}
+
+/* Modal responsive adjustments */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 5% auto;
+        width: 95%;
+    }
+    
+    .announcement-image {
+        max-width: 100%;
     }
 }
