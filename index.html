@@ -22,7 +22,7 @@
     </audio>
     
     <!-- Audio Control Button -->
-    <button class="audio-control-btn" id="audioControlBtn" title="إيقاف الصوت">
+     <button class="audio-control-btn" id="audioControlBtn" title="إيقاف الصوت">
         <span class="audio-icon">🔊</span>
     </button>
 
@@ -71,6 +71,10 @@
                         <div class="feature">
                             <div class="feature-icon">🏆</div>
                             <div class="feature-text">جوائز قيمة للفائزين<br><span class="prize-amount">25 ألف ريال سعودي</span></div>
+                        </div>
+                        <div class="feature" onclick="showGuide()">
+                            <div class="feature-icon">📖</div>
+                            <div class="feature-text">دليل المسابقة</div>
                         </div>
                     </div>
                     
@@ -357,6 +361,25 @@
                         <div class="inquiry-result" id="inquiryResult" style="display: none;">
                             <!-- نتيجة الاستعلام ستظهر هنا -->
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Modal -->
+    <div class="modal" id="announcementModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إعلان المسابقة القرآنية</h3>
+                <button class="modal-close" onclick="closeAnnouncement()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="announcement-content">
+                    <img src="الاعلان.jpg" alt="إعلان المسابقة القرآنية" class="announcement-image" onerror="showImageError()">
+                    <div id="imageError" class="image-error" style="display: none;">
+                        <p>عذراً، لا يمكن تحميل صورة الإعلان في الوقت الحالي.</p>
+                        <p>يرجى المحاولة لاحقاً أو التواصل مع الدعم الفني.</p>
                     </div>
                 </div>
             </div>

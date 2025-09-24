@@ -11,8 +11,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzGckBDZ8J4smorv7aNA_Eu
 const OFFLINE_MODE = false; // تغيير إلى true للعمل بدون API
 
 // Registration dates
-const REGISTRATION_START = new Date('2025-09-18T00:00:00+03:00'); // 18 سبتمبر 2025
-const REGISTRATION_END = new Date('2025-10-02T23:59:59+03:00'); // 2 أكتوبر 2025 (بعد أسبوعين)
+const REGISTRATION_START = new Date('2025-09-25T00:00:00+03:00'); // 25 سبتمبر 2025
+const REGISTRATION_END = new Date('2025-10-09T23:59:59+03:00'); // 9 أكتوبر 2025 (بعد أسبوعين)
 
 // Countdown variables
 let countdownInterval;
@@ -21,8 +21,8 @@ let countdownInterval;
 let backgroundMusic;
 let backgroundAudio;
 let audioControlBtn;
-let isMusicPlaying = true; // الصوت مشغل بشكل افتراضي
-let isAudioPlaying = true; // للتوافق مع الكود الموجود
+let isMusicPlaying = false; // الصوت متوقف بشكل افتراضي
+let isAudioPlaying = false; // للتوافق مع الكود الموجود
 let logoClickCount = 0;
 let isDeveloperMode = false;
 
@@ -69,20 +69,16 @@ function updateCountdown() {
         countdownTitle.textContent = titleText;
     }
     
-    // Update button state (مؤقتاً: الزر مفعل دائماً)
+    // Update button state based on registration period
     if (startBtn) {
-        startBtn.disabled = false; // مؤقتاً: تفعيل الزر دائماً
-        startBtn.textContent = 'ابدأ التسجيل الآن'; // مؤقتاً: نص ثابت
-        
-        // الكود الأصلي معطل مؤقتاً:
-        // startBtn.disabled = !buttonEnabled;
-        // if (buttonEnabled) {
-        //     startBtn.textContent = 'ابدأ التسجيل الآن';
-        // } else if (now < REGISTRATION_START) {
-        //     startBtn.textContent = 'التسجيل لم يبدأ بعد';
-        // } else {
-        //     startBtn.textContent = 'انتهى التسجيل';
-        // }
+        startBtn.disabled = !buttonEnabled;
+        if (buttonEnabled) {
+            startBtn.textContent = 'ابدأ التسجيل الآن';
+        } else if (now < REGISTRATION_START) {
+            startBtn.textContent = 'التسجيل لم يبدأ بعد';
+        } else {
+            startBtn.textContent = 'انتهى التسجيل';
+        }
     }
     
     // Update status
@@ -124,69 +120,47 @@ function initializeAudio() {
     audioControlBtn = document.getElementById('audioControlBtn');
     
     if (backgroundAudio && audioControlBtn) {
-        // ضبط الصوت ليكون مشغل بشكل افتراضي
+        // ضبط الصوت ليكون متوقف بشكل افتراضي
         backgroundAudio.loop = true;
         backgroundAudio.volume = 0.3;
         
-        // ضبط الحالة الافتراضية للزر (مشغل)
-        isAudioPlaying = true;
-        isMusicPlaying = true;
-        audioControlBtn.classList.remove('muted');
-        audioControlBtn.title = 'إيقاف الصوت';
+        // ضبط الحالة الافتراضية للزر (متوقف)
+        isAudioPlaying = false;
+        isMusicPlaying = false;
+        audioControlBtn.classList.add('muted');
+        audioControlBtn.title = 'تشغيل الصوت';
         
-        // Try to play audio automatically
-        const playPromise = backgroundAudio.play();
+        // التأكد من أن الصوت متوقف
+        backgroundAudio.pause();
         
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                // نجح التشغيل التلقائي
-                console.log('تم تشغيل الصوت تلقائياً');
-            }).catch(() => {
-                // Auto-play prevented by browser - لكن نبقي الزر يظهر أنه مشغل
-                console.log('منع المتصفح التشغيل التلقائي - اضغط الزر لتشغيل الصوت');
-            });
-        }
-        
-        // Add click event to audio control button
+        // Add click event to audio control button only
         audioControlBtn.addEventListener('click', toggleAudio);
         
-        // إضافة مستمع لأول تفاعل للمستخدم لبدء الصوت
-        document.addEventListener('click', function firstClick() {
-            if (!backgroundAudio.paused) return; // الصوت يعمل بالفعل
-            
-            backgroundAudio.play().then(() => {
-                isAudioPlaying = true;
-                isMusicPlaying = true;
-                audioControlBtn.classList.remove('muted');
-                audioControlBtn.title = 'إيقاف الصوت';
-                console.log('تم تشغيل الصوت بعد تفاعل المستخدم');
-            }).catch(error => {
-                console.log('فشل في تشغيل الصوت:', error);
-            });
-            
-            // إزالة المستمع بعد أول نقرة
-            document.removeEventListener('click', firstClick);
-        });
+        console.log('تم تهيئة الصوت في وضع الإيقاف - اضغط زر الصوت للتشغيل');
     }
 }
 
 function toggleAudio() {
     if (backgroundAudio) {
         if (isAudioPlaying) {
+            // إيقاف الصوت
             backgroundAudio.pause();
             isAudioPlaying = false;
             isMusicPlaying = false;
             audioControlBtn.classList.add('muted');
             audioControlBtn.title = 'تشغيل الصوت';
+            console.log('تم إيقاف الصوت');
         } else {
-            // في حالة أول تشغيل بعد منع المتصفح للتشغيل التلقائي
+            // تشغيل الصوت فقط عند الضغط على الزر
             backgroundAudio.play().then(() => {
                 isAudioPlaying = true;
                 isMusicPlaying = true;
                 audioControlBtn.classList.remove('muted');
                 audioControlBtn.title = 'إيقاف الصوت';
+                console.log('تم تشغيل الصوت');
             }).catch(error => {
                 console.log('فشل في تشغيل الصوت:', error);
+                // في حالة فشل التشغيل، نبقي الحالة كما هي
             });
         }
     }
@@ -245,15 +219,15 @@ function handleLogoClick() {
 function startRegistration() {
     console.log('Starting registration');
     
-    // مؤقتاً: تعطيل التحقق من التاريخ والسماح بالتسجيل
     // Check if registration is active or development mode is enabled
-    // const startBtn = document.getElementById('startBtn');
-    // const isDevelopmentMode = startBtn && startBtn.textContent.includes('وضع التطوير');
-    // const now = new Date();
+    const startBtn = document.getElementById('startBtn');
+    const isDevelopmentMode = startBtn && startBtn.textContent.includes('وضع التطوير');
+    const now = new Date();
     
-    // if (!isDevelopmentMode && (now < REGISTRATION_START || now > REGISTRATION_END)) {
-    //     return; // Button should be disabled anyway
-    // }
+    if (!isDevelopmentMode && (now < REGISTRATION_START || now > REGISTRATION_END)) {
+        console.log('Registration not available - outside of registration period');
+        return; // Button should be disabled anyway
+    }
     
     const welcomePage = document.getElementById('welcomePage');
     const registrationForm = document.getElementById('registrationForm');
@@ -1521,6 +1495,12 @@ function closeAnnouncement() {
             modal.style.display = 'none';
         }, 300);
     }
+}
+
+// إظهار دليل المسابقة - تحميل الملف
+function showGuide() {
+    const guideUrl = 'https://drive.google.com/uc?export=download&id=12XJ1KPFu6Df46njonSe9I8A-iUJ1c0aF';
+    window.open(guideUrl, '_blank');
 }
 
 // إظهار رسالة خطأ الصورة
