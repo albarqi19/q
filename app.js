@@ -11,8 +11,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzGckBDZ8J4smorv7aNA_Eu
 const OFFLINE_MODE = false; // تغيير إلى true للعمل بدون API
 
 // Registration dates
-const REGISTRATION_START = new Date('2025-09-25T00:00:00+03:00'); // 25 سبتمبر 2025
-const REGISTRATION_END = new Date('2025-10-09T23:59:59+03:00'); // 9 أكتوبر 2025 (بعد أسبوعين)
+const REGISTRATION_START = new Date('2025-10-05T00:00:00+03:00'); // 5 أكتوبر 2025
+const REGISTRATION_END = new Date('2025-10-19T23:59:59+03:00'); // 19 أكتوبر 2025 (بعد أسبوعين)
 
 // Countdown variables
 let countdownInterval;
