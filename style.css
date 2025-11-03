@@ -942,7 +942,8 @@ body {
     }
     
     .main-logo {
-        width: 150px;
+        width: 250px;
+        transform: translateY(-10%);
     }
     
     .logo-placeholder {
