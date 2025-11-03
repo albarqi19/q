@@ -726,10 +726,11 @@ body {
 
 .logo-section {
     margin-bottom: var(--space-16);
+    transform: translateY(-10%);
 }
 
 .main-logo {
-    width: 120px;
+    width: 180px;
     height: auto;
     margin-bottom: var(--space-16);
     filter: drop-shadow(0 4px 8px rgba(50, 53, 101, 0.1));
